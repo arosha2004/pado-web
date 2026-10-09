@@ -10,7 +10,15 @@
             <div class="border rounded-lg p-4 mb-3">
                 <div class="flex justify-between">
                     <div class="font-semibold">{{ $incident->title }}</div>
-                    <span class="text-xs uppercase px-2 py-1 rounded bg-amber-100 text-amber-700">{{ $incident->status }}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs uppercase px-2 py-1 rounded bg-amber-100 text-amber-700">{{ $incident->status }}</span>
+                        @if(auth()->user()->role !== 'employee' && $incident->status === 'open')
+                            <form method="POST" action="{{ route('incidents.resolve', $incident) }}">
+                                @csrf
+                                <button type="submit" class="text-xs uppercase px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Resolve</button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
                 <p class="mt-2 text-slate-600">{{ $incident->description }}</p>
             </div>

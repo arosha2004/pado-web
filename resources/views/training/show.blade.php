@@ -12,12 +12,20 @@
             <div class="border rounded-lg p-4">
                 <div class="font-semibold">{{ $section->title }}</div>
                 <div class="text-sm text-slate-600 mt-2">{{ $section->content }}</div>
-                <form method="POST" action="{{ route('training.complete', ['assignment' => 1, 'section' => $section->id]) }}" class="mt-3">
+                <form method="POST" action="{{ route('training.complete', ['assignment' => $assignment->id, 'section' => $section->id]) }}" class="mt-3">
                     @csrf
-                    <button type="submit" class="bg-emerald-600 text-white px-3 py-2 rounded">Mark section complete</button>
+                    <button type="submit" class="bg-emerald-600 text-white px-3 py-2 rounded text-sm hover:bg-emerald-500">Mark section complete</button>
                 </form>
             </div>
         @endforeach
     </div>
+
+    @if($trainingVersion->quiz)
+        <div class="mt-6 border-t pt-4">
+            <h3 class="text-lg font-semibold mb-2">Knowledge Assessment</h3>
+            <p class="text-sm text-slate-600 mb-4">You must complete all sections before taking the quiz.</p>
+            <a href="{{ route('quiz.show', $trainingVersion->quiz->id) }}" class="inline-block bg-slate-900 text-white px-4 py-2 rounded hover:bg-slate-800">Take Quiz</a>
+        </div>
+    @endif
 </div>
 @endsection

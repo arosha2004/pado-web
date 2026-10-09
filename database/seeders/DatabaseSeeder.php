@@ -117,6 +117,24 @@ class DatabaseSeeder extends Seeder
             ['training_version_id' => $trainingVersion->id, 'order' => 2, 'title' => 'Protect your account', 'content' => 'Never share credentials or leave accounts unlocked.', 'key_reminders' => 'Never share', 'resource_url' => 'https://example.com'],
         ]);
 
+        $quizVersion = \App\Models\QuizVersion::create([
+            'training_version_id' => $trainingVersion->id,
+            'title' => 'Password Security Quiz',
+            'pass_threshold' => 100,
+            'max_attempts' => 3,
+            'state' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $question1 = \App\Models\QuizQuestion::create([
+            'quiz_version_id' => $quizVersion->id,
+            'question_text' => 'Which of the following is considered a strong password?',
+            'sort_order' => 1,
+        ]);
+        \App\Models\QuizOption::create(['question_id' => $question1->id, 'option_text' => 'password123', 'is_correct' => false]);
+        \App\Models\QuizOption::create(['question_id' => $question1->id, 'option_text' => 'MyCatName', 'is_correct' => false]);
+        \App\Models\QuizOption::create(['question_id' => $question1->id, 'option_text' => 'A unique, long phrase with mixed characters', 'is_correct' => true]);
+
         TrainingAssignment::create([
             'user_id' => $employee->id,
             'training_version_id' => $trainingVersion->id,

@@ -29,4 +29,35 @@ class DashboardController extends Controller
             'compliance' => $service->myCompliance($user->id),
         ]);
     }
+
+    public function export(ComplianceService $service)
+    {
+        $user = auth()->user();
+        if ($user->role !== 'admin' && $user->role !== 'manager') {
+            abort(403);
+        }
+
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=compliance_report.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $users = \App\Models\User::with(['policyAssignments', 'policyAssignments.policyVersion'])->get();
+        $callback = function() use ($users) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['User Name', 'Email', 'Role', 'Status', 'Policies Assigned', 'Policies Acknowledged']);
+            
+            foreach ($users as $u) {
+                $assigned = $u->policyAssignments->count();
+                $acknowledged = $u->policyAssignments->where('status', 'acknowledged')->count();
+                fputcsv($file, [$u->name, $u->email, $u->role, $u->status, $assigned, $acknowledged]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

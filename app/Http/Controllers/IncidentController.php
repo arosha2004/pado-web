@@ -9,11 +9,23 @@ class IncidentController extends Controller
 {
     public function index()
     {
-        $incidents = Incident::query()->when(auth()->user()->role !== 'admin', function ($query) {
-            $query->where('user_id', auth()->id());
+        $user = auth()->user();
+        $incidents = Incident::query()->when($user->role === 'employee', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
         })->latest()->get();
 
         return view('incidents.index', compact('incidents'));
+    }
+
+    public function resolve(Incident $incident)
+    {
+        $user = auth()->user();
+        if ($user->role === 'employee') {
+            abort(403);
+        }
+
+        $incident->update(['status' => 'resolved']);
+        return back()->with('success', 'Incident resolved.');
     }
 
     public function store(Request $request)

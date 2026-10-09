@@ -4,7 +4,10 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(auth()->user()->role === 'admin')
+    @if(auth()->user()->role === 'admin' || auth()->user()->role === 'manager')
+        <div class="flex justify-end mb-4">
+            <a href="{{ route('dashboard.export') }}" class="bg-slate-900 text-white px-4 py-2 rounded text-sm hover:bg-slate-800">Export Compliance Report (CSV)</a>
+        </div>
         <div class="grid md:grid-cols-3 gap-4">
             <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
                 <div class="text-sm text-slate-500">Active users</div>

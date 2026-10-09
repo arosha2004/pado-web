@@ -11,7 +11,17 @@ class PolicyController extends Controller
 {
     public function index()
     {
-        $policies = Policy::with('versions')->latest()->get();
+        $user = auth()->user();
+        if ($user->role === 'employee') {
+            $assignedPolicyVersionIds = \App\Models\PolicyAssignment::where('user_id', $user->id)->pluck('policy_version_id');
+            $policies = Policy::whereHas('versions', function ($q) use ($assignedPolicyVersionIds) {
+                $q->whereIn('id', $assignedPolicyVersionIds);
+            })->with(['versions' => function ($q) use ($assignedPolicyVersionIds) {
+                $q->whereIn('id', $assignedPolicyVersionIds);
+            }])->latest()->get();
+        } else {
+            $policies = Policy::with('versions')->latest()->get();
+        }
 
         return view('policies.index', compact('policies'));
     }
@@ -23,9 +33,10 @@ class PolicyController extends Controller
         return view('policies.show', compact('policy', 'version'));
     }
 
-    public function acknowledge(PolicyService $policyService, PolicyVersion $policyVersion)
+    public function acknowledge(PolicyService $policyService, \App\Services\AuditService $auditService, PolicyVersion $policyVersion)
     {
         $policyService->acknowledge(auth()->id(), $policyVersion->id);
+        $auditService->record('policy.acknowledge', 'success', 'PolicyVersion', $policyVersion->id);
 
         return redirect()->back()->with('success', 'Policy acknowledged.');
     }
@@ -63,5 +74,18 @@ class PolicyController extends Controller
         ]);
 
         return redirect()->route('policies.index')->with('success', 'Policy created.');
+    }
+
+    public function archive(Policy $policy)
+    {
+        $user = auth()->user();
+        if ($user->role === 'employee') {
+            abort(403);
+        }
+        
+        $policy->update(['status' => 'archived']);
+        $policy->versions()->update(['state' => 'archived']);
+        
+        return redirect()->route('policies.index')->with('success', 'Policy archived.');
     }
 }

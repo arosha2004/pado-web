@@ -82,4 +82,14 @@ class UserController extends Controller
 
         return back()->with('success', 'User deactivated.');
     }
+
+    public function reactivate(User $user)
+    {
+        $user->update([
+            'status' => 'active',
+            'deactivation_reason' => null,
+        ]);
+
+        return back()->with('success', 'User reactivated.');
+    }
 }
